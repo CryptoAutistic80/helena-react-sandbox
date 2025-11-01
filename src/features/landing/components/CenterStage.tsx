@@ -1,18 +1,56 @@
-import { useRef } from 'react'
-import { DoubleSide, Mesh } from 'three'
+import { useEffect, useRef, useState } from 'react'
+import { DoubleSide, Mesh, Texture } from 'three'
 import { Float, MeshDistortMaterial, Sparkles } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
+import { createLandscapeTexture } from '../helpers'
 
 export function CenterStage() {
   const ring = useRef<Mesh>(null)
+  const [landscapeTexture, setLandscapeTexture] = useState<Texture | null>(null)
 
   useFrame((_, delta) => {
     if (!ring.current) return
     ring.current.rotation.z += delta * 0.4
   })
 
+  useEffect(() => {
+    let cancelled = false
+
+    createLandscapeTexture()
+      .then((texture) => {
+        if (cancelled) {
+          texture.dispose()
+          return
+        }
+        setLandscapeTexture(texture)
+      })
+      .catch((error) => {
+        console.error('[CenterStage] Unable to prepare landscape texture', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => () => {
+      landscapeTexture?.dispose()
+    },
+    [landscapeTexture],
+  )
+
   return (
     <group>
+      <mesh position={[0, 0.1, -2.4]}>
+        <planeGeometry args={[9, 5]} />
+        <meshBasicMaterial
+          color="#142236"
+          map={landscapeTexture ?? undefined}
+          toneMapped={false}
+          side={DoubleSide}
+        />
+      </mesh>
+
       <Float speed={1.4} rotationIntensity={0.5} floatIntensity={1.2}>
         <mesh castShadow position={[0, 0.4, 0]}>
           <icosahedronGeometry args={[0.85, 1]} />
