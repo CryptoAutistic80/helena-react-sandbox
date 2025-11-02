@@ -22,7 +22,7 @@ Before you begin, make sure you have these installed:
 
 2. **Navigate to the project folder**
    ```bash
-   cd my-react-sandbox
+   cd helena-react-sandbox
    ```
 
 3. **Install dependencies**
